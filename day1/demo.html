@@ -11,3 +11,382 @@
     <h1>Hrutik ch </h1>
 </body>
 </html>
+package day2;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collection;
+
+public class EmpolyeeDao implements DaoInterface<Employee, Integer> {
+
+	@Override
+	public Collection<Employee> getAll() {
+		// TODO Auto-generated method stub
+		String sqlquery = "select empId,first_name,last_name,gender from employee";
+		
+		Collection<Employee> allEmployee = new ArrayList();
+		
+		try(   Connection conn = JdbcUtils.builderConnection();
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(sqlquery);
+				){
+			while(rs.next()) {
+				int id = rs.getInt(1);
+				String name = rs.getString(2);
+				String lastName = rs.getString(3);
+				String gender = rs.getNString(4);
+				
+			Employee currentEmployee= new Employee(id,name,lastName,gender);
+			allEmployee.add(currentEmployee);
+			} 
+			
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return allEmployee;
+	}
+
+	@Override
+	public Employee getOne(Integer key) {
+		// TODO Auto-generated method stub
+		Employee foundEmployee = null;
+		try(
+				Connection conn= JdbcUtils.builderConnection()){
+		String sqlquery = "select  empId,first_name,last_name,gender from employee where empId = ?";
+		
+		PreparedStatement pstmt = conn.prepareStatement(sqlquery);
+		pstmt.setInt(1, key);
+		ResultSet rs =  pstmt.executeQuery();
+		
+		if(rs.next()) {
+			int id = rs.getInt(1);
+			String name = rs.getString(2);
+			String lastName = rs.getString(3);
+			String gender = rs.getNString(4);
+			
+			foundEmployee = new Employee(id,name,lastName,gender);
+		}
+		
+
+	
+		
+		
+		
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+		return 	foundEmployee ;
+	}
+
+	@Override
+	public void create(Employee newEmployee) {
+		// TODO Auto-generated method stub
+		String sqlQuery =
+				"insert into Employee(empId,first_name,last_name,gender) values(?,?,?,?)";
+		
+		try(Connection conn = JdbcUtils.builderConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sqlQuery);)
+		{
+			
+			int id =  newEmployee.getEmpid();
+			String name =  newEmployee.getFirst_name();
+			String lastName =  newEmployee.getLast_name();
+			String gender =  newEmployee.getGender();
+			
+			pstmt.setInt(1, id);
+			pstmt.setString(2, name);
+			pstmt.setString(3, lastName);
+			pstmt.setString(4, gender);
+			
+			int count = pstmt.executeUpdate();
+			System.out.println(count + " record inserted");
+			
+			
+			
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		
+	}
+
+	@Override
+	public void deleteOne(Integer id) {
+		// TODO Auto-generated method stub
+		String sqlQuery = "delete from Employee where empid = ?";
+		
+		try(
+				Connection conn = JdbcUtils.builderConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sqlQuery);
+				){
+			pstmt.setInt(1, id);
+			int count = pstmt.executeUpdate();
+			System.out.println(count + " record deleted");
+			
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
+
+	@Override
+	public void update(Employee newEmployee) {
+		// TODO Auto-generated method stub
+		String sqlQuery = "update Employee set first_name = ?, last_name = ?, gender = ? where empId = ?";
+		
+		try(Connection conn = JdbcUtils.builderConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sqlQuery);)
+		{
+			
+			int id =  newEmployee.getEmpid();
+			String name =  newEmployee.getFirst_name();
+			String lastName =  newEmployee.getLast_name();
+			String gender =  newEmployee.getGender();
+			
+			pstmt.setInt(1, id);
+			pstmt.setString(2, name);
+			pstmt.setString(3, lastName);
+			pstmt.setString(4, gender);
+			
+			int count = pstmt.executeUpdate();
+			System.out.println(count + " record inserted");
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+	}
+
+}
+
+
+package day2;
+
+import java.util.Collection;
+
+public interface DaoInterface<T, K> {
+
+	Collection<T> getAll();
+	T getOne(K key);
+	
+	void create(T t);
+	void deleteOne(K key);
+	void update(T t);
+	
+	
+}
+
+
+package day2;
+
+import java.util.Collection;
+
+public class CRUDmain {
+
+	private static void showAllRestaurant() {
+		DaoInterface<Employee,Integer> idao= new EmpolyeeDao();
+		
+		Collection <Employee> allEmployee = idao.getAll();
+		
+		
+		for(Employee rst : allEmployee  ) {
+			System.out.println(rst);
+		}
+	}
+	
+	public static void showOneRestaurant() {
+		
+		DaoInterface<Employee,Integer> idao = new EmpolyeeDao();
+		
+		Employee rst = idao.getOne(3);
+		if(rst != null) 
+			System.out.println(rst);
+		else
+			System.out.println("Restaurant with this ID does not exist");
+	}
+	
+	
+	
+	private static void createNewEmployeee() {
+		DaoInterface<Employee, Integer> idao = new EmpolyeeDao();
+		Employee rst = new Employee(4, "Green Signal", "Oriental", "M");
+		idao.create(rst);
+	}
+	
+	private static void deleteEmployee() {
+		DaoInterface<Employee, Integer> idao = new EmpolyeeDao();
+		idao.deleteOne(1);
+	}
+	
+	
+	private static void updateEmployee() {
+		DaoInterface<Employee, Integer> idao = new EmpolyeeDao();
+		
+		Employee rst = idao.getOne(3);
+		
+				rst.setLast_name("Emp");
+		idao.update(rst);
+	}
+	
+	
+	
+	
+	public static void main(String[] args) {
+		
+		//showAllRestaurant();
+		//showOneRestaurant();
+		//createNewEmployeee();
+		//deleteEmployee();
+		
+		
+		
+		
+
+	}
+
+}
+
+<!DOCTYPE html>
+<html>
+<body bgcolor="cyan">
+		<h2>Create New Employee</h2>
+		<form action="CreateEmployee" method="post">
+			<pre>
+				EmployeeID: <input type="text" name="EmployeeId"/>
+				
+				FirstName: <input type="text" name="EmployeeName"/>
+				
+				LasttName: <input type="text" name="LastName"/>
+				
+				Gender: <input type="text" name="EmployeeGender"/>
+				
+				<input type="submit" value="CREATE"/>
+			</pre>
+		</form>
+	</body>
+</html>
+
+
+package day4.servlet;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import day4.bins.Employee;
+import day4.dao.DaoInterface;
+import day4.dao.EmployeeDao;
+/**
+ * Servlet implementation class CreateEmployeeServlet
+ */
+@WebServlet(name = "MyCreateEmployeeServlet", urlPatterns = { "/CreateEmployee" })
+public class CreateEmployeeServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		response.getWriter().append("Served at: ").append(request.getContextPath());
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		
+		response.setContentType("text/html");
+		PrintWriter out = response.getWriter();
+		
+		String Empid = request.getParameter("EmployeeId");
+		String EmployeeName = request.getParameter("EmployeeName");
+		String LastName = request.getParameter("LastName");
+		String EmployeeGender = request.getParameter("EmployeeGender");
+		
+		
+		int e_id = Integer.parseInt(Empid);
+		
+		Employee est = new Employee(e_id,EmployeeName,LastName ,EmployeeGender);
+		
+		DaoInterface<Employee, Integer> idao = new EmployeeDao();
+		
+		idao.create(est);
+		out.println("<h2>Restaurant created successfully..</h2>");
+	}
+
+}
+
+package day4.Utils;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+
+public class jdbcUtils {
+
+	public static Connection builderConnection()  throws Exception{
+		
+		
+		String driverClassName = "com.mysql.cj.jdbc.Driver";
+		Class.forName(driverClassName);
+		String connectionUrl = "jdbc:mysql://localhost:3306/cdac_nov_23?useSSL=false";
+		String userId = "root";
+		String password = "Hrutik@14";
+			
+		Connection	dbConnection = DriverManager.getConnection(connectionUrl, userId, password);
+		return dbConnection;
+		
+}
+}
+
+
+
+
+
+
+
+
+
+            
+            
